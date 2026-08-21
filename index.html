@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bilancio Familiare</title>
+  <style>
+    :root {
+      --bg-color: #f4f6f9;
+      --card-bg: #ffffff;
+      --text-color: #2c3e50;
+      --green-bg: #e8f5e9;
+      --green-border: #81c784;
+      --green-text: #2e7d32;
+      --red-bg: #ffebee;
+      --red-border: #e57373;
+      --red-text: #c62828;
+      --primary: #3498db;
+      --primary-dark: #2980b9;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header & Navigation */
+    header {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .month-selector {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .btn-icon {
+      padding: 6px 12px;
+      font-size: 1rem;
+    }
+
+    .btn-secondary {
+      background-color: #7f8c8d;
+    }
+    .btn-secondary:hover {
+      background-color: #6c7a7d;
+    }
+
+    /* Initial Balance Row */
+    .initial-balance-container,
+    .period-settings-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      background: #f8f9fa;
+      padding: 8px 15px;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+      max-width: 620px;
+      margin-left: auto;
+      margin-right: auto;
+      flex-wrap: wrap;
+    }
+
+    .period-settings-container label,
+    .period-settings-container span {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .period-day-input {
+      width: 52px;
+      padding: 4px 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    .initial-balance-date-input {
+      padding: 4px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .period-range-label {
+      font-size: 0.8rem;
+      color: #7f8c8d;
+      margin-bottom: 8px;
+    }
+
+    .initial-balance-container label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .initial-balance-input {
+      width: 110px;
+      padding: 4px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      text-align: right;
+    }
+
+    .btn-reset-initial {
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      background: #e0e0e0;
+      color: #333;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-reset-initial:hover {
+      background: #d0d0d0;
+    }
+
+    /* Balance Display */
+    .balance-box {
+      font-size: 1.8rem;
+      font-weight: 800;
+      padding: 12px 24px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-top: 5px;
+      transition: all 0.3s ease;
+    }
+
+    .balance-positive {
+      background-color: var(--green-bg);
+      color: var(--green-text);
+      border: 2px solid var(--green-border);
+    }
+
+    .balance-negative {
+      background-color: var(--red-bg);
+      color: var(--red-text);
+      border: 2px solid var(--red-border);
+    }
+
+    /* Timeline Controls */
+    .timeline-container {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px dashed #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .timeline-slider-wrapper {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 10px;
+    }
+
+    .timeline-slider-container {
+      flex: 1;
+      position: relative;
+      height: 28px;
+      display: flex;
+      align-items: center;
+    }
+
+    .timeline-track {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      height: 10px;
+      border-radius: 5px;
+      pointer-events: none;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
+
+    .timeline-slider {
+      position: relative;
+      width: 100%;
+      height: 28px;
+      margin: 0;
+      background: transparent;
+      outline: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .timeline-slider::-webkit-slider-runnable-track {
+      height: 10px;
+      background: transparent;
+      border-radius: 5px;
+    }
+
+    .timeline-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 2px solid white;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+      margin-top: -4px;
+      cursor: pointer;
+    }
+
+    .timeline-slider::-moz-range-track {
+      height: 10px;
+      background: transparent;
+      border-radius: 5px;
+      border: none;
+    }
+
+    .timeline-slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 2px solid white;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+      cursor: pointer;
+    }
+
+    .timeline-balance-box {
+      font-size: 1.3rem;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: 4px;
+    }
+
+    /* Grid Columns */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .column {
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      min-height: 450px;
+    }
+
+    .col-uscite {
+      background-color: var(--red-bg);
+      border: 1px solid var(--red-border);
+    }
+
+    .col-entrate {
+      background-color: var(--green-bg);
+      border: 1px solid var(--green-border);
+    }
+
+    .column-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(0,0,0,0.08);
+    }
+
+    .column-header h2 {
+      font-size: 1.3rem;
+    }
+
+    .col-uscite h2 { color: var(--red-text); }
+    .col-entrate h2 { color: var(--green-text); }
+
+    .items-list {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 550px;
+      margin-bottom: 15px;
+      padding-right: 5px;
+    }
+
+    /* Item Cards Layout */
+    .item-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: opacity 0.2s, transform 0.1s;
+      cursor: pointer;
+    }
+
+    .item-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+
+    .item-card.disabled {
+      opacity: 0.4;
+      text-decoration: line-through;
+    }
+
+    .item-top-row {
+      width: 100%;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
+    }
+
+    .item-desc {
+      font-weight: 600;
+      font-size: 0.98rem;
+      line-height: 1.3;
+      color: var(--text-color);
+      display: block;
+      width: 100%;
+    }
+
+    .item-tag {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #eee;
+      color: #555;
+      display: inline-block;
+      margin-left: 6px;
+      vertical-align: middle;
+      text-decoration: none !important;
+    }
+
+    .item-bottom-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding-top: 4px;
+      border-top: 1px dashed #eee;
+    }
+
+    .item-bottom-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .item-checkbox {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .item-date {
+      font-size: 0.8rem;
+      color: #7f8c8d;
+    }
+
+    .item-scadenza {
+      font-size: 0.75rem;
+      color: #c0392b;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .item-bottom-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .item-amount {
+      font-weight: 700;
+      font-size: 1.05rem;
+      white-space: nowrap;
+      margin-right: 4px;
+    }
+
+    .col-uscite .item-amount { color: var(--red-text); }
+    .col-entrate .item-amount { color: var(--green-text); }
+
+    .btn-action {
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: background 0.2s;
+    }
+
+    .btn-action:hover {
+      background: #e0e0e0;
+    }
+
+    .btn-delete {
+      color: var(--red-text);
+      border-color: var(--red-border);
+    }
+    .btn-delete:hover {
+      background: var(--red-bg);
+    }
+
+    .btn-edit {
+      color: #2980b9;
+      border-color: #3498db;
+    }
+    .btn-edit:hover {
+      background: #eaf2f8;
+    }
+
+    .add-btn-container {
+      margin-top: auto;
+    }
+
+    .btn-add-uscite {
+      width: 100%;
+      background-color: var(--red-text);
+    }
+    .btn-add-uscite:hover {
+      background-color: #a71d1d;
+    }
+
+    .btn-add-entrate {
+      width: 100%;
+      background-color: var(--green-text);
+    }
+    .btn-add-entrate:hover {
+      background-color: #215c25;
+    }
+
+    /* Total Footer per column */
+    .col-total {
+      font-weight: bold;
+      font-size: 1.1rem;
+      text-align: right;
+      padding-top: 10px;
+      margin-top: 5px;
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h3 {
+      font-size: 1.2rem;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #7f8c8d;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Options Box in Modal */
+    .recurring-options {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #e9ecef;
+      margin-top: 10px;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+    }
+
+    .radio-group label {
+      font-weight: normal;
+      cursor: pointer;
+    }
+
+    .fixed-list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      background: #fafafa;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .fixed-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .fixed-actions {
+      display: flex;
+      gap: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="top-bar">
+      <button class="btn btn-secondary" onclick="openSetupModal()">⚙️ Impostazioni / Fissi e Ricorrenti</button>
+      
+      <div class="month-selector">
+        <button class="btn btn-icon" onclick="changeMonth(-1)">❮</button>
+        <span id="currentMonthLabel">Gennaio 2026</span>
+        <button class="btn btn-icon" onclick="changeMonth(1)">❯</button>
+      </div>
+
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn btn-secondary" onclick="exportData()">💾 Salva Backup</button>
+        <button class="btn btn-secondary" onclick="triggerImportBackup()">📂 Carica Backup</button>
+        <input type="file" id="backupFileInput" accept=".json,application/json" class="hidden" onchange="importBackup(event)">
+      </div>
+    </div>
+
+    <!-- Periodo contabile del mese (modificabile mese per mese) -->
+    <div class="period-settings-container">
+      <label for="periodStartDay">Periodo dal giorno</label>
+      <input type="number" min="1" max="31" id="periodStartDay" class="period-day-input" value="10" onchange="handlePeriodSettingsChange()">
+      <span>al giorno</span>
+      <input type="number" min="1" max="31" id="periodEndDay" class="period-day-input" value="10" onchange="handlePeriodSettingsChange()">
+      <span>del mese successivo</span>
+    </div>
+    <div id="periodRangeLabel" class="period-range-label"></div>
+
+    <!-- Saldo Iniziale Personalizzabile del Mese -->
+    <div class="initial-balance-container">
+      <label for="initialBalanceInput">Saldo Iniziale Mese (€):</label>
+      <input type="number" step="0.01" id="initialBalanceInput" class="initial-balance-input" onchange="handleInitialBalanceChange()">
+      <label for="initialBalanceDateInput">Data:</label>
+      <input type="date" id="initialBalanceDateInput" class="initial-balance-date-input" onchange="handleInitialBalanceChange()">
+      <button class="btn-reset-initial" onclick="resetInitialBalance()" title="Ripristina il saldo calcolato dal mese precedente">Auto</button>
+    </div>
+
+    <div>
+      <span style="font-size: 0.9rem; color: #7f8c8d;">SALDO FINE PERIODO</span><br>
+      <div id="totalBalance" class="balance-box balance-positive">€ 0.00</div>
+    </div>
+
+    <!-- Timeline e Saldo alla data selezionata -->
+    <div class="timeline-container">
+      <span style="font-size: 0.9rem; font-weight: 600; color: #34495e;">
+        ⏱️ Timeline Saldo al: <span id="selectedDateLabel">--/--/----</span>
+      </span>
+
+      <div class="timeline-slider-wrapper">
+        <span id="minDayLabel" style="font-size: 0.8rem; font-weight: bold; color: #7f8c8d;">--/--</span>
+        <div class="timeline-slider-container">
+          <div id="timelineTrack" class="timeline-track"></div>
+          <input type="range" id="timelineSlider" class="timeline-slider" min="0" max="30" value="0" oninput="updateTimelineBalance()">
+        </div>
+        <span id="maxDayLabel" style="font-size: 0.8rem; font-weight: bold; color: #7f8c8d;">--/--</span>
+      </div>
+
+      <div>
+        <span style="font-size: 0.85rem; color: #7f8c8d;">DISPONIBILE ALLA DATA</span><br>
+        <div id="timelineBalance" class="balance-box balance-positive timeline-balance-box">€ 0.00</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-grid">
+    <!-- Colonna Uscite -->
+    <section class="column col-uscite">
+      <div class="column-header">
+        <h2>Uscite (Spese)</h2>
+      </div>
+      
+      <div class="items-list" id="usciteList">
+        <!-- Inserimento dinamico uscite -->
+      </div>
+
+      <div class="col-total" id="usciteTotal">Totale: € 0.00</div>
+
+      <div class="add-btn-container" style="margin-top: 15px;">
+        <button class="btn btn-add-uscite" onclick="openModal('uscite')">+ Aggiungi Uscita</button>
+      </div>
+    </section>
+
+    <!-- Colonna Entrate -->
+    <section class="column col-entrate">
+      <div class="column-header">
+        <h2>Entrate</h2>
+      </div>
+
+      <div class="items-list" id="entrateList">
+        <!-- Inserimento dinamico entrate -->
+      </div>
+
+      <div class="col-total" id="entrateTotal">Totale: € 0.00</div>
+
+      <div class="add-btn-container" style="margin-top: 15px;">
+        <button class="btn btn-add-entrate" onclick="openModal('entrate')">+ Aggiungi Entrata</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL INSERIMENTO / MODIFICA TRANSAZIONE -->
+  <div class="modal-overlay" id="transactionModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Nuova Operazione</h3>
+        <button class="close-modal" onclick="closeModal('transactionModal')">&times;</button>
+      </div>
+      <form id="transactionForm" onsubmit="handleFormSubmit(event)">
+        <input type="hidden" id="transId" value="">
+        <input type="hidden" id="transType" value="uscite">
+
+        <div class="form-group">
+          <label for="transAmount">Importo (€)</label>
+          <input type="number" step="0.01" min="0.01" id="transAmount" class="form-control" placeholder="0.00" required>
+        </div>
+
+        <div class="form-group">
+          <label for="transDesc">Descrizione</label>
+          <input type="text" id="transDesc" class="form-control" placeholder="es. Spesa alimentari, Stipendio..." required>
+        </div>
+
+        <div class="form-group">
+          <label for="transDate">Data</label>
+          <input type="date" id="transDate" class="form-control" required>
+        </div>
+
+        <div id="usciteScadenzaGroup" class="form-group hidden">
+          <label for="transScadenza">Scadenza (facoltativa)</label>
+          <input type="date" id="transScadenza" class="form-control">
+        </div>
+
+        <!-- Opzioni aggiuntive solo per le nuove Uscite -->
+        <div id="usciteOptions" class="form-group">
+          <label>
+            <input type="checkbox" id="isRecurring" onchange="toggleRecurringOptions()"> Spesa Ricorrente o Rateizzata
+          </label>
+
+          <div id="recurringDetails" class="recurring-options hidden">
+            <div class="radio-group">
+              <label><input type="radio" name="recType" value="mensile" checked onchange="toggleRateOptions()"> Ricorrente Mensile</label>
+              <label><input type="radio" name="recType" value="rata" onchange="toggleRateOptions()"> A Rate</label>
+            </div>
+
+            <div id="rateDetails" class="hidden">
+              <div class="form-group">
+                <label for="rateCount">Numero totale rate:</label>
+                <input type="number" id="rateCount" class="form-control" min="2" value="2">
+              </div>
+            </div>
+            <p style="font-size:0.75rem; color:#666; margin-top:5px;">
+              * Verrà salvata anche nei costi fissi/setup e sarà gestita automaticamente nei mesi successivi.
+            </p>
+          </div>
+        </div>
+
+        <button type="submit" id="btnSubmitTrans" class="btn" style="width: 100%; margin-top: 10px;">Salva</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL SETUP / FISSI E RICORRENTI -->
+  <div class="modal-overlay" id="setupModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="setupModalTitle">Impostazioni / Voci Fisse e Ricorrenti</h3>
+        <button class="close-modal" onclick="closeModal('setupModal')">&times;</button>
+      </div>
+
+      <!-- Form Aggiunta / Modifica Fissa -->
+      <form id="fixedForm" onsubmit="handleSaveFixed(event)">
+        <input type="hidden" id="editFixedId" value="">
+
+        <div class="form-group">
+          <label for="fixedType">Tipo</label>
+          <select id="fixedType" class="form-control" onchange="toggleFixedTypeFields()">
+            <option value="uscite">Uscita / Spesa</option>
+            <option value="entrate">Entrata</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="fixedDesc">Descrizione</label>
+          <input type="text" id="fixedDesc" class="form-control" placeholder="es. Affitto, Stipendio, Finanziamento Auto" required>
+        </div>
+
+        <div class="form-group">
+          <label for="fixedAmount">Importo (€)</label>
+          <input type="number" step="0.01" min="0.01" id="fixedAmount" class="form-control" placeholder="0.00" required>
+        </div>
+
+        <div class="form-group">
+          <label for="fixedDate">Data / Data Inizio</label>
+          <input type="date" id="fixedDate" class="form-control" required>
+        </div>
+
+        <div id="fixedRecOptions" class="form-group">
+          <label for="fixedRecType">Tipologia</label>
+          <select id="fixedRecType" class="form-control" onchange="toggleFixedRateFields()">
+            <option value="fissa">Ricorrente Fissa (Tutti i mesi)</option>
+            <option value="rata">Rateizzata</option>
+          </select>
+        </div>
+
+        <div id="fixedRateFields" class="form-group hidden">
+          <label for="fixedTotalRate">Numero Totale Rate</label>
+          <input type="number" id="fixedTotalRate" class="form-control" min="2" value="2">
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" id="btnSaveFixed" class="btn btn-secondary" style="flex: 1;">+ Aggiungi Voce Fissa</button>
+          <button type="button" id="btnCancelEditFixed" class="btn btn-secondary hidden" onclick="cancelEditFixed()" style="background:#e74c3c;">Annulla Modifica</button>
+        </div>
+      </form>
+
+      <div style="margin-top: 25px;">
+        <h4>Elenco Voci Fisse, Ricorrenti e Rate:</h4>
+        <div id="fixedList" style="max-height: 250px; overflow-y: auto; margin-top: 10px;">
+          <!-- Elenco fisse -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Stato dell'applicazione
+    let currentDate = new Date();
+    const DEFAULT_PERIOD_START_DAY = 10;
+    const DEFAULT_PERIOD_END_DAY = 10;
+    let appData = {
+      transactions: [],      // { id, type, desc, amount, date (YYYY-MM-DD), monthKey (YYYY-MM), enabled, tag, fixedId }
+      fixedItems: [],        // { id, type, desc, amount, startDate (YYYY-MM-DD), recType: 'fissa'|'rata', totalRate: 12 }
+      customInitialBalances: {}, // { "YYYY-MM": { amount, date } | number (legacy) }
+      monthPeriodSettings: {}    // { "YYYY-MM": { startDay, endDay } }
+    };
+
+    // Nomi mesi in italiano
+    const monthNames = [
+      "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+      "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+    ];
+
+    // Inizializzazione
+    window.onload = function() {
+      loadData();
+      initSliderForCurrentMonth(true);
+      renderApp();
+    };
+
+    function getMonthKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      return `${year}-${month}`;
+    }
+
+    function parseMonthKey(monthKey) {
+      const parts = monthKey.split('-');
+      return { year: parseInt(parts[0]), month: parseInt(parts[1]) - 1 };
+    }
+
+    function getDaysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+
+    function formatDateISO(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function parseISODate(dateStr) {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    function clampDayToMonth(year, month, day) {
+      const maxDay = getDaysInMonth(year, month);
+      const clampedDay = Math.min(Math.max(1, day), maxDay);
+      return formatDateISO(new Date(year, month, clampedDay));
+    }
+
+    function getMonthPeriodSettings(monthKey) {
+      if (!appData.monthPeriodSettings) appData.monthPeriodSettings = {};
+      const settings = appData.monthPeriodSettings[monthKey] || {};
+      return {
+        startDay: settings.startDay ?? DEFAULT_PERIOD_START_DAY,
+        endDay: settings.endDay ?? DEFAULT_PERIOD_END_DAY
+      };
+    }
+
+    function setMonthPeriodSettings(monthKey, startDay, endDay) {
+      if (!appData.monthPeriodSettings) appData.monthPeriodSettings = {};
+      appData.monthPeriodSettings[monthKey] = {
+        startDay: Math.min(31, Math.max(1, parseInt(startDay, 10) || DEFAULT_PERIOD_START_DAY)),
+        endDay: Math.min(31, Math.max(1, parseInt(endDay, 10) || DEFAULT_PERIOD_END_DAY))
+      };
+    }
+
+    function getPeriodDateRange(monthKey) {
+      const parsed = parseMonthKey(monthKey);
+      const { startDay, endDay } = getMonthPeriodSettings(monthKey);
+      const start = clampDayToMonth(parsed.year, parsed.month, startDay);
+      const end = clampDayToMonth(parsed.year, parsed.month + 1, endDay);
+      return { start, end };
+    }
+
+    function getPeriodDays(monthKey) {
+      const { start, end } = getPeriodDateRange(monthKey);
+      const days = [];
+      const current = parseISODate(start);
+      const endDate = parseISODate(end);
+
+      while (current <= endDate) {
+        days.push(formatDateISO(current));
+        current.setDate(current.getDate() + 1);
+      }
+      return days;
+    }
+
+    function dateInPeriod(dateStr, monthKey) {
+      const { start, end } = getPeriodDateRange(monthKey);
+      return dateStr >= start && dateStr <= end;
+    }
+
+    function getMonthKeyForDate(dateStr) {
+      const dateObj = parseISODate(dateStr);
+      const currentKey = getMonthKey(dateObj);
+      const prevKey = getPreviousMonthKey(currentKey);
+      const prevSettings = getMonthPeriodSettings(prevKey);
+      const currentSettings = getMonthPeriodSettings(currentKey);
+      const prevParsed = parseMonthKey(prevKey);
+      const currentParsed = parseMonthKey(currentKey);
+
+      const isExtensionOfPrev = (
+        (dateObj.getFullYear() > prevParsed.year || dateObj.getMonth() > prevParsed.month) &&
+        dateObj.getDate() <= prevSettings.endDay
+      );
+
+      const isCurrentPeriodStart = (
+        dateObj.getFullYear() === currentParsed.year &&
+        dateObj.getMonth() === currentParsed.month &&
+        dateObj.getDate() === currentSettings.startDay
+      );
+
+      if (isExtensionOfPrev && dateInPeriod(dateStr, prevKey) && !isCurrentPeriodStart) {
+        return prevKey;
+      }
+
+      if (dateObj.getDate() >= currentSettings.startDay) {
+        return currentKey;
+      }
+
+      if (dateInPeriod(dateStr, prevKey)) return prevKey;
+      return currentKey;
+    }
+
+    function getPreviousMonthKey(monthKey) {
+      const parsed = parseMonthKey(monthKey);
+      const prevDate = new Date(parsed.year, parsed.month - 1, 1);
+      return getMonthKey(prevDate);
+    }
+
+    function formatPeriodRangeLabel(monthKey) {
+      const { start, end } = getPeriodDateRange(monthKey);
+      const startObj = parseISODate(start);
+      const endObj = parseISODate(end);
+      const fmt = (d) => d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+      return `Periodo: ${fmt(startObj)} → ${fmt(endObj)}`;
+    }
+
+    function getInitialBalanceEntry(monthKey) {
+      if (!appData.customInitialBalances) appData.customInitialBalances = {};
+      const entry = appData.customInitialBalances[monthKey];
+      if (entry === undefined || entry === null) return null;
+
+      if (typeof entry === 'number') {
+        return { amount: entry, date: getPeriodDateRange(monthKey).start };
+      }
+
+      return {
+        amount: parseFloat(entry.amount),
+        date: entry.date || getPeriodDateRange(monthKey).start
+      };
+    }
+
+    function setInitialBalanceEntry(monthKey, amount, date) {
+      if (!appData.customInitialBalances) appData.customInitialBalances = {};
+      appData.customInitialBalances[monthKey] = { amount, date };
+    }
+
+    function getTransactionsForPeriod(monthKey, includeDisabled = false) {
+      return appData.transactions.filter(t => {
+        if (!includeDisabled && t.enabled === false) return false;
+        return dateInPeriod(t.date, monthKey);
+      });
+    }
+
+    // Calcolo ricorsivo del saldo finale di un dato mese (periodo contabile)
+    function calculateEndMonthBalance(monthKey) {
+      const { amount: initial, date: initialDate } = getInitialBalanceInfo(monthKey);
+      const periodItems = getTransactionsForPeriod(monthKey);
+
+      let totalEntrate = 0;
+      let totalUscite = 0;
+
+      periodItems.forEach(t => {
+        if (t.date < initialDate) return;
+        if (t.type === 'entrate') totalEntrate += parseFloat(t.amount);
+        if (t.type === 'uscite') totalUscite += parseFloat(t.amount);
+      });
+
+      return initial + (totalEntrate - totalUscite);
+    }
+
+    function getInitialBalanceInfo(monthKey) {
+      const customEntry = getInitialBalanceEntry(monthKey);
+      if (customEntry) {
+        return customEntry;
+      }
+
+      const prevMonthKey = getPreviousMonthKey(monthKey);
+      const hasPrevActivity = getTransactionsForPeriod(prevMonthKey, true).length > 0 ||
+                              getInitialBalanceEntry(prevMonthKey) !== null;
+
+      if (hasPrevActivity) {
+        const prevEndBalance = calculateEndMonthBalance(prevMonthKey);
+        return {
+          amount: prevEndBalance,
+          date: getPeriodDateRange(monthKey).start
+        };
+      }
+
+      return {
+        amount: 0,
+        date: getPeriodDateRange(monthKey).start
+      };
+    }
+
+    function getInitialBalanceForMonth(monthKey) {
+      return getInitialBalanceInfo(monthKey).amount;
+    }
+
+    function handleInitialBalanceChange() {
+      const amountEl = document.getElementById('initialBalanceInput');
+      const dateEl = document.getElementById('initialBalanceDateInput');
+      const amount = parseFloat(amountEl.value);
+      const date = dateEl.value;
+      const monthKey = getMonthKey(currentDate);
+
+      if (!isNaN(amount) && date) {
+        setInitialBalanceEntry(monthKey, amount, date);
+      }
+      renderApp();
+    }
+
+    function resetInitialBalance() {
+      const monthKey = getMonthKey(currentDate);
+      if (appData.customInitialBalances && appData.customInitialBalances[monthKey] !== undefined) {
+        delete appData.customInitialBalances[monthKey];
+      }
+      renderApp();
+    }
+
+    function handlePeriodSettingsChange() {
+      const monthKey = getMonthKey(currentDate);
+      const startDay = document.getElementById('periodStartDay').value;
+      const endDay = document.getElementById('periodEndDay').value;
+      setMonthPeriodSettings(monthKey, startDay, endDay);
+      initSliderForCurrentMonth(false);
+      renderApp();
+    }
+
+    function initSliderForCurrentMonth(resetToToday = false) {
+      const monthKey = getMonthKey(currentDate);
+      const periodDays = getPeriodDays(monthKey);
+      const slider = document.getElementById('timelineSlider');
+
+      if (periodDays.length === 0) return;
+
+      slider.min = 0;
+      slider.max = periodDays.length - 1;
+
+      const startLabel = parseISODate(periodDays[0]).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+      const endLabel = parseISODate(periodDays[periodDays.length - 1]).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+      document.getElementById('minDayLabel').innerText = startLabel;
+      document.getElementById('maxDayLabel').innerText = endLabel;
+
+      const todayStr = formatDateISO(new Date());
+      const todayIndex = periodDays.indexOf(todayStr);
+
+      if (resetToToday) {
+        slider.value = todayIndex >= 0 ? todayIndex : 0;
+      } else if (parseInt(slider.value, 10) > periodDays.length - 1) {
+        slider.value = periodDays.length - 1;
+      }
+    }
+
+    function renderApp() {
+      const monthKey = getMonthKey(currentDate);
+      document.getElementById('currentMonthLabel').innerText = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+
+      const periodSettings = getMonthPeriodSettings(monthKey);
+      document.getElementById('periodStartDay').value = periodSettings.startDay;
+      document.getElementById('periodEndDay').value = periodSettings.endDay;
+      document.getElementById('periodRangeLabel').innerText = formatPeriodRangeLabel(monthKey);
+
+      const initialInfo = getInitialBalanceInfo(monthKey);
+      document.getElementById('initialBalanceInput').value = initialInfo.amount.toFixed(2);
+      document.getElementById('initialBalanceDateInput').value = initialInfo.date;
+
+      // Genera i fissi/ricorrenti per il mese corrente se non esistono
+      applyFixedItemsForMonth(monthKey);
+
+      // Filtra e ordina transazioni del periodo contabile
+      const monthItems = getTransactionsForPeriod(monthKey, true);
+      monthItems.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const usciteList = document.getElementById('usciteList');
+      const entrateList = document.getElementById('entrateList');
+      usciteList.innerHTML = '';
+      entrateList.innerHTML = '';
+
+      let totalUscite = 0;
+      let totalEntrate = 0;
+
+      monthItems.forEach(item => {
+        const isEnabled = item.enabled !== false;
+        const countsForTotals = isEnabled && item.date >= initialInfo.date;
+
+        if (countsForTotals) {
+          if (item.type === 'uscite') totalUscite += parseFloat(item.amount);
+          if (item.type === 'entrate') totalEntrate += parseFloat(item.amount);
+        }
+
+        const card = createItemCard(item);
+        if (item.type === 'uscite') {
+          usciteList.appendChild(card);
+        } else {
+          entrateList.appendChild(card);
+        }
+      });
+
+      // Calcolo Totali Colonna
+      document.getElementById('usciteTotal').innerText = `Totale: € ${totalUscite.toFixed(2)}`;
+      document.getElementById('entrateTotal').innerText = `Totale: € ${totalEntrate.toFixed(2)}`;
+
+      // Saldo Fine Periodo = Saldo Iniziale + Entrate - Uscite (dal giorno del saldo iniziale)
+      const saldoFineMese = initialInfo.amount + (totalEntrate - totalUscite);
+      const balanceEl = document.getElementById('totalBalance');
+      balanceEl.innerText = `€ ${saldoFineMese.toFixed(2)}`;
+      
+      if (saldoFineMese >= 0) {
+        balanceEl.className = "balance-box balance-positive";
+      } else {
+        balanceEl.className = "balance-box balance-negative";
+      }
+
+      initSliderForCurrentMonth(false);
+      updateTimelineBalance();
+      saveData();
+    }
+
+    function getBalanceAtDate(monthKey, dateStr) {
+      const initialInfo = getInitialBalanceInfo(monthKey);
+      const filteredItems = getTransactionsForPeriod(monthKey).filter(t => {
+        return t.date >= initialInfo.date && t.date <= dateStr;
+      });
+
+      let entrateFiltered = 0;
+      let usciteFiltered = 0;
+
+      filteredItems.forEach(item => {
+        if (item.type === 'entrate') entrateFiltered += parseFloat(item.amount);
+        if (item.type === 'uscite') usciteFiltered += parseFloat(item.amount);
+      });
+
+      return initialInfo.amount + entrateFiltered - usciteFiltered;
+    }
+
+    function updateTimelineTrack() {
+      const monthKey = getMonthKey(currentDate);
+      const periodDays = getPeriodDays(monthKey);
+      const trackEl = document.getElementById('timelineTrack');
+
+      if (!trackEl || periodDays.length === 0) return;
+
+      if (periodDays.length === 1) {
+        const balance = getBalanceAtDate(monthKey, periodDays[0]);
+        trackEl.style.background = balance >= 0 ? '#81c784' : '#e57373';
+        return;
+      }
+
+      const stops = periodDays.map((day, index) => {
+        const balance = getBalanceAtDate(monthKey, day);
+        const color = balance >= 0 ? '#81c784' : '#e57373';
+        const startPct = (index / periodDays.length) * 100;
+        const endPct = ((index + 1) / periodDays.length) * 100;
+        return `${color} ${startPct}%, ${color} ${endPct}%`;
+      });
+
+      trackEl.style.background = `linear-gradient(to right, ${stops.join(', ')})`;
+    }
+
+    function updateTimelineBalance() {
+      const monthKey = getMonthKey(currentDate);
+      const periodDays = getPeriodDays(monthKey);
+      const sliderIndex = parseInt(document.getElementById('timelineSlider').value, 10);
+      const selectedDateStr = periodDays[sliderIndex] || periodDays[0];
+
+      if (!selectedDateStr) return;
+
+      const selectedDateObj = parseISODate(selectedDateStr);
+      document.getElementById('selectedDateLabel').innerText = selectedDateObj.toLocaleDateString('it-IT');
+
+      const availableBalance = getBalanceAtDate(monthKey, selectedDateStr);
+      const timelineEl = document.getElementById('timelineBalance');
+      timelineEl.innerText = `€ ${availableBalance.toFixed(2)}`;
+
+      if (availableBalance >= 0) {
+        timelineEl.className = "balance-box balance-positive timeline-balance-box";
+      } else {
+        timelineEl.className = "balance-box balance-negative timeline-balance-box";
+      }
+
+      updateTimelineTrack();
+    }
+
+    function createItemCard(item) {
+      const card = document.createElement('div');
+      const isEnabled = item.enabled !== false;
+      card.className = `item-card ${!isEnabled ? 'disabled' : ''}`;
+
+      // Permette di cliccare la card per modificare i dati
+      card.onclick = function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('.btn-action')) {
+          return;
+        }
+        editTransaction(item.id);
+      };
+
+      const formattedDate = parseISODate(item.date).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' });
+      let tagHtml = item.tag ? `<span class="item-tag">${item.tag}</span>` : '';
+      let scadenzaHtml = '';
+      if (item.type === 'uscite' && item.scadenza) {
+        const scadFormatted = parseISODate(item.scadenza).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        scadenzaHtml = `<span class="item-scadenza" title="Scadenza">Scad. ${scadFormatted}</span>`;
+      }
+
+      card.innerHTML = `
+        <div class="item-top-row">
+          <span class="item-desc">${escapeHtml(item.desc)} ${tagHtml}</span>
+        </div>
+        <div class="item-bottom-row">
+          <div class="item-bottom-left">
+            <input type="checkbox" class="item-checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleItem('${item.id}', event)">
+            <span class="item-date">${formattedDate}</span>
+            ${scadenzaHtml}
+          </div>
+          <div class="item-bottom-right">
+            <span class="item-amount">€ ${parseFloat(item.amount).toFixed(2)}</span>
+            <button class="btn-action" title="Sposta al mese successivo" onclick="moveToNextMonth('${item.id}', event)">➔ Mese succ.</button>
+            <button class="btn-action btn-delete" title="Elimina" onclick="deleteItem('${item.id}', event)">✕</button>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    function changeMonth(delta) {
+      currentDate.setMonth(currentDate.getMonth() + delta);
+      initSliderForCurrentMonth(true);
+      renderApp();
+    }
+
+    // Modal Control per Nuova Transazione
+    function openModal(type) {
+      document.getElementById('transId').value = '';
+      document.getElementById('transType').value = type;
+      document.getElementById('modalTitle').innerText = type === 'uscite' ? 'Nuova Uscita' : 'Nuova Entrata';
+      document.getElementById('btnSubmitTrans').innerText = 'Salva';
+
+      const usciteOptions = document.getElementById('usciteOptions');
+      const scadenzaGroup = document.getElementById('usciteScadenzaGroup');
+      if (type === 'uscite') {
+        usciteOptions.classList.remove('hidden');
+        scadenzaGroup.classList.remove('hidden');
+      } else {
+        usciteOptions.classList.add('hidden');
+        scadenzaGroup.classList.add('hidden');
+      }
+
+      const monthKey = getMonthKey(currentDate);
+      const periodStart = getPeriodDateRange(monthKey).start;
+      
+      document.getElementById('transactionForm').reset();
+      document.getElementById('transId').value = '';
+      document.getElementById('transType').value = type;
+      document.getElementById('transDate').value = periodStart;
+      toggleRecurringOptions();
+
+      document.getElementById('transactionModal').classList.add('active');
+    }
+
+    // Modifica Transazione del mese al click
+    function editTransaction(id) {
+      const item = appData.transactions.find(t => t.id === id);
+      if (!item) return;
+
+      document.getElementById('transId').value = item.id;
+      document.getElementById('transType').value = item.type;
+      document.getElementById('modalTitle').innerText = item.type === 'uscite' ? 'Modifica Uscita' : 'Modifica Entrata';
+      document.getElementById('btnSubmitTrans').innerText = '💾 Salva Modifiche';
+
+      document.getElementById('transAmount').value = item.amount;
+      document.getElementById('transDesc').value = item.desc;
+      document.getElementById('transDate').value = item.date;
+
+      const scadenzaGroup = document.getElementById('usciteScadenzaGroup');
+      if (item.type === 'uscite') {
+        scadenzaGroup.classList.remove('hidden');
+        document.getElementById('transScadenza').value = item.scadenza || '';
+      } else {
+        scadenzaGroup.classList.add('hidden');
+        document.getElementById('transScadenza').value = '';
+      }
+
+      document.getElementById('usciteOptions').classList.add('hidden');
+
+      document.getElementById('transactionModal').classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function toggleRecurringOptions() {
+      const isRec = document.getElementById('isRecurring').checked;
+      const details = document.getElementById('recurringDetails');
+      if (isRec) details.classList.remove('hidden');
+      else details.classList.add('hidden');
+      toggleRateOptions();
+    }
+
+    function toggleRateOptions() {
+      const recType = document.querySelector('input[name="recType"]:checked').value;
+      const rateDetails = document.getElementById('rateDetails');
+      if (recType === 'rata') rateDetails.classList.remove('hidden');
+      else rateDetails.classList.add('hidden');
+    }
+
+    // Gestione Inserimento / Modifica da Modal Transazioni
+    function handleFormSubmit(e) {
+      e.preventDefault();
+
+      const transId = document.getElementById('transId').value;
+      const type = document.getElementById('transType').value;
+      const amount = parseFloat(document.getElementById('transAmount').value);
+      const desc = document.getElementById('transDesc').value.trim();
+      const dateStr = document.getElementById('transDate').value;
+      const monthKey = getMonthKeyForDate(dateStr);
+      const scadenzaStr = document.getElementById('transScadenza').value;
+
+      if (transId) {
+        // Modifica di una transazione esistente
+        const index = appData.transactions.findIndex(t => t.id === transId);
+        if (index !== -1) {
+          appData.transactions[index].amount = amount;
+          appData.transactions[index].desc = desc;
+          appData.transactions[index].date = dateStr;
+          appData.transactions[index].monthKey = monthKey;
+          if (appData.transactions[index].type === 'uscite') {
+            if (scadenzaStr) {
+              appData.transactions[index].scadenza = scadenzaStr;
+            } else {
+              delete appData.transactions[index].scadenza;
+            }
+          }
+        }
+      } else {
+        // Nuova transazione
+        if (type === 'uscite' && document.getElementById('isRecurring').checked) {
+          const recType = document.querySelector('input[name="recType"]:checked').value;
+
+          if (recType === 'mensile') {
+            const newFixed = {
+              id: generateId(),
+              type: 'uscite',
+              desc: desc,
+              amount: amount,
+              startDate: dateStr,
+              recType: 'fissa'
+            };
+            appData.fixedItems.push(newFixed);
+          } else if (recType === 'rata') {
+            const totalRate = parseInt(document.getElementById('rateCount').value) || 2;
+            const newFixed = {
+              id: generateId(),
+              type: 'uscite',
+              desc: desc,
+              amount: amount,
+              startDate: dateStr,
+              recType: 'rata',
+              totalRate: totalRate
+            };
+            appData.fixedItems.push(newFixed);
+          }
+        } else {
+          const newTransaction = {
+            id: generateId(),
+            type, desc, amount,
+            date: dateStr,
+            monthKey,
+            enabled: true
+          };
+          if (type === 'uscite' && scadenzaStr) {
+            newTransaction.scadenza = scadenzaStr;
+          }
+          appData.transactions.push(newTransaction);
+        }
+      }
+
+      closeModal('transactionModal');
+      renderApp();
+    }
+
+    // Toggle Abilita/Disabilita spesa
+    function toggleItem(id, event) {
+      if (event) event.stopPropagation();
+      const item = appData.transactions.find(t => t.id === id);
+      if (item) {
+        item.enabled = item.enabled === false ? true : false;
+        renderApp();
+      }
+    }
+
+    // Sposta al mese successivo (calendario)
+    function moveToNextMonth(id, event) {
+      if (event) event.stopPropagation();
+      const item = appData.transactions.find(t => t.id === id);
+      if (item) {
+        const d = parseISODate(item.date);
+        d.setMonth(d.getMonth() + 1);
+        item.date = formatDateISO(d);
+        item.monthKey = getMonthKeyForDate(item.date);
+        renderApp();
+      }
+    }
+
+    // Elimina transazione singola
+    function deleteItem(id, event) {
+      if (event) event.stopPropagation();
+      appData.transactions = appData.transactions.filter(t => t.id !== id);
+      renderApp();
+    }
+
+    // GESTIONE SETUP / FISSI E RICORRENTI
+    function openSetupModal() {
+      cancelEditFixed();
+      
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      document.getElementById('fixedDate').value = `${year}-${month}-01`;
+
+      renderFixedList();
+      document.getElementById('setupModal').classList.add('active');
+    }
+
+    function toggleFixedTypeFields() {
+      const type = document.getElementById('fixedType').value;
+      const recOpt = document.getElementById('fixedRecOptions');
+      if (type === 'entrate') {
+        recOpt.classList.add('hidden');
+        document.getElementById('fixedRateFields').classList.add('hidden');
+      } else {
+        recOpt.classList.remove('hidden');
+        toggleFixedRateFields();
+      }
+    }
+
+    function toggleFixedRateFields() {
+      const recType = document.getElementById('fixedRecType').value;
+      const rateFields = document.getElementById('fixedRateFields');
+      if (recType === 'rata') {
+        rateFields.classList.remove('hidden');
+      } else {
+        rateFields.classList.add('hidden');
+      }
+    }
+
+    function handleSaveFixed(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editFixedId').value;
+      const type = document.getElementById('fixedType').value;
+      const desc = document.getElementById('fixedDesc').value.trim();
+      const amount = parseFloat(document.getElementById('fixedAmount').value);
+      const startDate = document.getElementById('fixedDate').value;
+      const recType = type === 'uscite' ? document.getElementById('fixedRecType').value : 'fissa';
+      const totalRate = recType === 'rata' ? parseInt(document.getElementById('fixedTotalRate').value) : 1;
+
+      if (editId) {
+        const index = appData.fixedItems.findIndex(f => f.id === editId);
+        if (index !== -1) {
+          appData.fixedItems[index] = {
+            id: editId,
+            type, desc, amount, startDate, recType, totalRate
+          };
+          appData.transactions = appData.transactions.filter(t => t.fixedId !== editId);
+        }
+      } else {
+        appData.fixedItems.push({
+          id: generateId(),
+          type, desc, amount, startDate, recType, totalRate
+        });
+      }
+
+      cancelEditFixed();
+      renderFixedList();
+      renderApp();
+    }
+
+    function editFixed(id) {
+      const item = appData.fixedItems.find(f => f.id === id);
+      if (!item) return;
+
+      document.getElementById('editFixedId').value = item.id;
+      document.getElementById('fixedType').value = item.type;
+      document.getElementById('fixedDesc').value = item.desc;
+      document.getElementById('fixedAmount').value = item.amount;
+      document.getElementById('fixedDate').value = item.startDate || `${currentDate.getFullYear()}-01-01`;
+      
+      toggleFixedTypeFields();
+
+      if (item.type === 'uscite') {
+        document.getElementById('fixedRecType').value = item.recType || 'fissa';
+        toggleFixedRateFields();
+        if (item.recType === 'rata') {
+          document.getElementById('fixedTotalRate').value = item.totalRate || 2;
+        }
+      }
+
+      document.getElementById('btnSaveFixed').innerText = '💾 Salva Modifiche';
+      document.getElementById('btnCancelEditFixed').classList.remove('hidden');
+    }
+
+    function cancelEditFixed() {
+      document.getElementById('fixedForm').reset();
+      document.getElementById('editFixedId').value = '';
+      document.getElementById('btnSaveFixed').innerText = '+ Aggiungi Voce Fissa';
+      document.getElementById('btnCancelEditFixed').classList.add('hidden');
+      toggleFixedTypeFields();
+    }
+
+    function deleteFixed(id) {
+      appData.fixedItems = appData.fixedItems.filter(f => f.id !== id);
+      appData.transactions = appData.transactions.filter(t => t.fixedId !== id);
+      renderFixedList();
+      renderApp();
+    }
+
+    function renderFixedList() {
+      const listContainer = document.getElementById('fixedList');
+      listContainer.innerHTML = '';
+
+      if (appData.fixedItems.length === 0) {
+        listContainer.innerHTML = '<p style="font-size:0.85rem; color:#999;">Nessuna voce fissa/ricorrente presente.</p>';
+        return;
+      }
+
+      appData.fixedItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'fixed-list-item';
+        
+        let typeInfo = item.type === 'entrate' ? 'ENTRATA' : (item.recType === 'rata' ? `RATA (${item.totalRate} tot)` : 'RICORRENTE');
+        let dateInfo = item.startDate ? `Inizio: ${new Date(item.startDate).toLocaleDateString('it-IT')}` : '';
+
+        div.innerHTML = `
+          <div class="fixed-info">
+            <span><strong>[${typeInfo}]</strong> ${escapeHtml(item.desc)} - <strong>€ ${parseFloat(item.amount).toFixed(2)}</strong></span>
+            <span style="font-size:0.75rem; color:#666;">${dateInfo}</span>
+          </div>
+          <div class="fixed-actions">
+            <button class="btn-action btn-edit" onclick="editFixed('${item.id}')">✏️ Modifica</button>
+            <button class="btn-action btn-delete" onclick="deleteFixed('${item.id}')">✕</button>
+          </div>
+        `;
+        listContainer.appendChild(div);
+      });
+    }
+
+    // APPLICAZIONE AUTOMATICA DELLE VOCI FISSE/RICORRENTI/RATE AL MESE
+    function applyFixedItemsForMonth(targetMonthKey) {
+      const targetParsed = parseMonthKey(targetMonthKey);
+      const targetYear = targetParsed.year;
+      const targetMonth = targetParsed.month;
+
+      appData.fixedItems.forEach(fixed => {
+        if (!fixed.startDate) return;
+
+        const startParsed = parseMonthKey(getMonthKey(new Date(fixed.startDate)));
+        const startYear = startParsed.year;
+        const startMonth = startParsed.month;
+
+        const monthDiff = (targetYear - startYear) * 12 + (targetMonth - startMonth);
+
+        if (monthDiff < 0) return;
+
+        if (fixed.recType === 'rata') {
+          if (monthDiff < fixed.totalRate) {
+            const currentRataNum = monthDiff + 1;
+            const rateResidue = fixed.totalRate - currentRataNum;
+            const dayStr = String(parseISODate(fixed.startDate).getDate()).padStart(2, '0');
+            const itemDate = `${targetMonthKey}-${dayStr}`;
+            const exists = appData.transactions.some(t => t.fixedId === fixed.id && dateInPeriod(t.date, targetMonthKey));
+
+            if (!exists && dateInPeriod(itemDate, targetMonthKey)) {
+              appData.transactions.push({
+                id: generateId(),
+                fixedId: fixed.id,
+                type: fixed.type,
+                desc: `${fixed.desc} (Rata ${currentRataNum}/${fixed.totalRate} - ${rateResidue} residua/e)`,
+                amount: fixed.amount,
+                date: itemDate,
+                monthKey: getMonthKeyForDate(itemDate),
+                enabled: true,
+                tag: 'Rata'
+              });
+            }
+          }
+        } else {
+          const dayStr = String(parseISODate(fixed.startDate).getDate()).padStart(2, '0');
+          const itemDate = `${targetMonthKey}-${dayStr}`;
+          const exists = appData.transactions.some(t => t.fixedId === fixed.id && dateInPeriod(t.date, targetMonthKey));
+
+          if (!exists && dateInPeriod(itemDate, targetMonthKey)) {
+            appData.transactions.push({
+              id: generateId(),
+              fixedId: fixed.id,
+              type: fixed.type,
+              desc: fixed.desc,
+              amount: fixed.amount,
+              date: itemDate,
+              monthKey: getMonthKeyForDate(itemDate),
+              enabled: true,
+              tag: fixed.type === 'uscite' ? 'Ricorrente' : 'Fisso'
+            });
+          }
+        }
+      });
+    }
+
+    // Utility
+    function generateId() {
+      return '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+      });
+    }
+
+    // Salvataggio e Caricamento LocalStorage
+    function saveData() {
+      localStorage.setItem('family_budget_data_v5', JSON.stringify(appData));
+    }
+
+    function migrateAppData(data) {
+      if (!data.monthPeriodSettings) data.monthPeriodSettings = {};
+
+      if (data.customInitialBalances) {
+        Object.keys(data.customInitialBalances).forEach(monthKey => {
+          const entry = data.customInitialBalances[monthKey];
+          if (typeof entry === 'number') {
+            const { start } = getPeriodDateRangeForMigration(monthKey, data.monthPeriodSettings);
+            data.customInitialBalances[monthKey] = { amount: entry, date: start };
+          }
+        });
+      }
+
+      if (Array.isArray(data.transactions)) {
+        data.transactions.forEach(t => {
+          if (t.date) {
+            t.monthKey = getMonthKeyForDateWithSettings(t.date, data.monthPeriodSettings);
+          }
+        });
+      }
+
+      return data;
+    }
+
+    function getPeriodDateRangeForMigration(monthKey, settingsMap) {
+      const parsed = parseMonthKey(monthKey);
+      const settings = settingsMap[monthKey] || {};
+      const startDay = settings.startDay ?? DEFAULT_PERIOD_START_DAY;
+      const endDay = settings.endDay ?? DEFAULT_PERIOD_END_DAY;
+      const start = clampDayToMonth(parsed.year, parsed.month, startDay);
+      const end = clampDayToMonth(parsed.year, parsed.month + 1, endDay);
+      return { start, end };
+    }
+
+    function getMonthKeyForDateWithSettings(dateStr, settingsMap) {
+      const dateObj = parseISODate(dateStr);
+      const currentKey = getMonthKey(dateObj);
+      const prevKey = getPreviousMonthKey(currentKey);
+      const prevParsed = parseMonthKey(prevKey);
+      const prevSettings = settingsMap[prevKey] || {};
+      const currentSettings = settingsMap[currentKey] || {};
+      const prevEndDay = prevSettings.endDay ?? DEFAULT_PERIOD_END_DAY;
+      const currentStartDay = currentSettings.startDay ?? DEFAULT_PERIOD_START_DAY;
+
+      const isExtensionOfPrev = (
+        (dateObj.getFullYear() > prevParsed.year || dateObj.getMonth() > prevParsed.month) &&
+        dateObj.getDate() <= prevEndDay
+      );
+
+      const prevRange = getPeriodDateRangeForMigration(prevKey, settingsMap);
+      const inPrev = dateStr >= prevRange.start && dateStr <= prevRange.end;
+
+      if (isExtensionOfPrev && inPrev) return prevKey;
+      if (dateObj.getDate() >= currentStartDay) return currentKey;
+      if (inPrev) return prevKey;
+      return currentKey;
+    }
+
+    function loadData() {
+      const savedV5 = localStorage.getItem('family_budget_data_v5');
+      const savedV4 = localStorage.getItem('family_budget_data_v4');
+      const saved = savedV5 || savedV4;
+
+      if (saved) {
+        try {
+          appData = migrateAppData(JSON.parse(saved));
+        } catch(e) {
+          console.error("Errore nel caricamento dati", e);
+        }
+      }
+    }
+
+    // Esporta file JSON
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `bilancio_backup_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function triggerImportBackup() {
+      document.getElementById('backupFileInput').click();
+    }
+
+    function validateBackupData(data) {
+      return data &&
+        typeof data === 'object' &&
+        Array.isArray(data.transactions) &&
+        Array.isArray(data.fixedItems);
+    }
+
+    function importBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+
+          if (!validateBackupData(data)) {
+            alert('File backup non valido. Assicurati di selezionare un file JSON esportato da questa app.');
+            return;
+          }
+
+          if (!confirm('Caricando il backup sostituirai tutti i dati attuali. Vuoi continuare?')) {
+            return;
+          }
+
+          appData = migrateAppData(data);
+          initSliderForCurrentMonth(true);
+          renderApp();
+          alert('Backup caricato con successo!');
+        } catch (err) {
+          console.error('Errore import backup', err);
+          alert('Errore nella lettura del file backup. Verifica che il file JSON sia corretto.');
+        } finally {
+          event.target.value = '';
+        }
+      };
+
+      reader.onerror = function() {
+        alert('Impossibile leggere il file selezionato.');
+        event.target.value = '';
+      };
+
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
